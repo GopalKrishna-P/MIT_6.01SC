@@ -16,25 +16,46 @@ class BinaryOp:
 
 class Sum(BinaryOp):
     opStr = 'Sum'
+    def eval(self, env):
+        left = self.left.eval(env)
+        right = self.right.eval(env)
+        return operator.add(left, right)
 
 class Prod(BinaryOp):
     opStr = 'Prod'
+    def eval(self, env):
+        left = self.left.eval(env)
+        right = self.right.eval(env)
+        return operator.mul(left, right)    
 
 class Quot(BinaryOp):
     opStr = 'Quot'
+    def eval(self, env):
+        left = self.left.eval(env)
+        right = self.right.eval(env)
+        return operator.div(left, right)    
 
 class Diff(BinaryOp):
     opStr = 'Diff'
+    def eval(self, env):
+        left = self.left.eval(env)
+        right = self.right.eval(env)
+        return operator.sub(left, right)
 
 class Assign(BinaryOp):
     opStr = 'Assign'
-        
+    def eval(self, env):
+        right = self.right.eval(env)
+        env[self.left.name] = right
+
 class Number:
     def __init__(self, val):
         self.value = val
     def __str__(self):
         return 'Num('+str(self.value)+')'
     __repr__ = __str__
+    def eval(self, env):
+        return self.value
 
 class Variable:
     def __init__(self, name):
@@ -42,22 +63,57 @@ class Variable:
     def __str__(self):
         return 'Var('+self.name+')'
     __repr__ = __str__
+    # Return the value associated with the variable.
+    def eval(self, env):
+        return env[self.name]
 
 # characters that are single-character tokens
 seps = ['(', ')', '+', '-', '*', '/', '=']
 
 # Convert strings into a list of tokens (strings)
 def tokenize(string):
-    # <your code here>
-    pass
-
+    sup_str = ''
+    # Concatenating the string in other string(sup_string).
+    for char in string:
+        # But if the char is a special one, I plub a space after and before the special char.
+        if char in seps:
+            sup_str = sup_str + ' ' + char + ' ' 
+        else:
+            sup_str = sup_str + char
+    # By this way when I split up, I will get the result I want.
+    list_str = sup_str.split()
+    return list_str
 # tokens is a list of tokens
 # returns a syntax tree:  an instance of {\tt Number}, {\tt Variable},
 # or one of the subclasses of {\tt BinaryOp} 
 def parse(tokens):
     def parseExp(index):
-        # <your code here>
-        pass
+        # If the token at this index is a number.
+        if numberTok(tokens[index]):
+            # Return the token instantiated as a Num and the next index.
+            return (Number(float(tokens[index])), index+1)
+        # IF the token is a variable.
+        elif variableTok(tokens[index]):
+            # Return the token instantiated as a Var and the next index.
+            return (Variable(tokens[index]), index+1)
+        # Otherwise, It is a parentheses '('.
+        else:
+            # For example (3 + 5)
+            # '(' --> index / '3' --> index + 1 / '+' --> op(index+2) /'5' --> op + 1/ ')' --> nextIndex 
+            (leftTree, op) = parseExp(index + 1)
+            # Parse the expression and call RightTree then return it and the next index beyond the expression.
+            (rightTree, nextIndex) = parseExp(op + 1)
+            # Analyzi op to decide what kind of Instatiate to take.
+            if tokens[op] == '+':
+                return (Sum(leftTree, rightTree), nextIndex + 1)
+            elif tokens[op] == '*':
+                return (Prod(leftTree, rightTree), nextIndex + 1)
+            elif tokens[op] == '/':
+                return (Quot(leftTree, rightTree), nextIndex + 1)
+            elif tokens[op] == '-':
+                return (Diff(leftTree, rightTree), nextIndex + 1)
+            elif tokens[op] == '=':
+                return (Assign(leftTree, rightTree), nextIndex + 1)        
     (parsedExp, nextIndex) = parseExp(0)
     return parsedExp
 
@@ -85,7 +141,7 @@ def calc():
     env = {}
     while True:
         e = raw_input('%')            # prints %, returns user input
-        print '%', # your expression here
+        print '%', e, '\n', parse(tokenize(e)).eval(env)# your expression here
         print '   env =', env
 
 # exprs is a list of strings
@@ -93,8 +149,8 @@ def calc():
 def calcTest(exprs):
     env = {}
     for e in exprs:
-        print '%', e                    # e is the experession 
-        print # your expression here
+        print '%', e                    # e is the experession
+        print parse(tokenize(e)).eval(env)        # your expression here
         print '   env =', env
 
 # Simple tokenizer tests
@@ -161,7 +217,7 @@ testExprs = ['(2 + 5)',
              '(w = (z + 1))',
              'w'
              ]
-# calcTest(testExprs)
+calcTest(testExprs)
 
 ####################################################################
 # Test cases for LAZY evaluator
@@ -206,3 +262,27 @@ partialTestExprs = ['(z = (y + w))',
                     'z']
 
 # calcTest(partialTestExprs)
+
+class Tokenizer(sm.SM):
+    startState = ''
+    def getNextValues(self, state, inp):  # inp is a single character.
+
+        if inp in seps:
+            return (inp, state)
+        elif inp == ' ':
+            return ('', state)
+        else:
+            if state in seps:
+                output = state
+                state = ''
+                return (state+inp, output)
+            else:
+                return (state+inp, '')
+
+def tokenize(inputString):
+    tokens_des = Tokenizer().transduce(inputString+' ')
+    tokens_org = []
+    for token in tokens_des:
+        if token != '':
+            tokens_org.append(token) 
+    return tokens_org

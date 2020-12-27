@@ -6,10 +6,11 @@ import lib601.sm as sm
 
 class Delay2Machine(sm.SM):
     def __init__(self, val0, val1):
-        self.startState = ''   # fix this
-        pass
+        self.startState = (val0, val1)
     def getNextValues(self, state, inp):
-        pass
+        (previousPreviousInput, previousInput) = state
+        return ((previousInput, inp), previousPreviousInput) 
+  
 
 def runTestsDelay():
     print 'Test1:', Delay2Machine(100, 10).transduce([1,0,2,0,0,3,0,0,0,4])
@@ -44,12 +45,19 @@ def f(x):  # func
 
 
 class CommentsSM(sm.SM):
-    startState = ''  # fix this
-
+    startState = 'close'
     def getNextValues(self, state, inp):
-        # your code here
-        pass
- 
+        if inp == '#':
+            if state == 'close':
+                return ('open', inp)
+        elif inp == '\n':
+            if state == 'open':
+                return ('close', None)
+        else:
+            if state == 'open':
+                return ('open', inp)
+            if state == 'close':
+                return ('close', None)
 
 def runTestsComm():
     m = CommentsSM()
@@ -95,8 +103,20 @@ test3  = '''
 # test3 ='\n\n hi \nho ho ho\n\n ha ha ha'
 
 class FirstWordSM(sm.SM):
-    # Your code here
-    pass
+    startState = 'looking'
+    def getNextValues(self, state, inp):
+        if inp == ' ':
+            if state == 'looking':
+                return ('looking', None)
+            else:
+                return ('not', None)
+        elif inp == '\n':
+                return ('looking', None)
+        else:
+            if state == 'looking' or state == 'found':
+                return ('found', inp)
+            if state == 'not':
+                return ('not', None)
 
 def runTestsFW():
     m = FirstWordSM()
