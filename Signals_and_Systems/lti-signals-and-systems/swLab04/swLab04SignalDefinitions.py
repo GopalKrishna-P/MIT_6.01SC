@@ -216,3 +216,54 @@ class ConstantSignal(Signal):
 # Your code here
 ################
 
+class StepSignal(Signal):
+    def sample(self, n):
+        return n >= 0
+
+class SummedSignal(Signal):
+    def __init__(self, s1, s2):
+        self.s1 = s1
+        self.s2 = s2
+    def sample(self, n):
+        return self.s1.sample(n) + self.s2.sample(n)
+
+class ScaledSignal(Signal):
+    def __init__(self, s, c):
+        self.s = s
+        self.c = c
+    def sample(self, n):
+        return self.s.sample(n)*self.c
+
+class R(Signal):
+    def __init__(self, s):
+        self.s = s
+    def sample(self, n):
+        return self.s.sample(n - 1)
+
+class Rn(Signal):
+    def __init__(self, s, k):
+        self.s = s
+        self.k = k
+    def sample(self, n):
+        return self.s.sample(n - self.k)
+
+def reverse(p):
+    list = []
+    for i in range(1,len(p) + 1):
+        list.append(p[-i])
+    return list
+
+def sum_list_sigs(list_signals):
+    if len(list_signals) == 1:
+        return list_signals[0]
+    else:
+        return list_signals[0] + sum_list_sigs(list_signals[1:])
+    
+def polyR(s, p):
+    coeffs = reverse(p.coeffs)
+    list_signals = []
+    i = 0
+    for coeff in coeffs:
+        list_signals.append(Rn(ScaledSignal(s, coeff), i))
+        i = i + 1
+    return sum_list_sigs(list_signals)

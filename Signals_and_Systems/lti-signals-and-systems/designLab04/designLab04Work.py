@@ -7,16 +7,16 @@ import lib601.sm as sm  # SM
 ######################################################################
 
 def plant(T, initD):
-    pass
+	return sm.Cascade(sm.Cascade(sm.Gain(-T), sm.R(0)), sm.FeedbackAdd(sm.Gain(1), sm.R(initD)))
 
 def controller(k):
-    pass
+	return sm.Gain(k)
 
 def sensor(initD):
-    pass
+	return sm.R(initD)
 
 def wallFinderSystem(T, initD, k):
-    pass
+    return sm.FeedbackSubtract(sm.Cascade(controller(k), plant(T, initD)), sensor(initD))
 
 # Plots the sequence of distances when the robot starts at distance
 # initD from the wall, and desires to be at distance 0.7 m.  Time step

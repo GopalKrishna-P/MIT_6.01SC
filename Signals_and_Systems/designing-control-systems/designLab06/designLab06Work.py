@@ -7,13 +7,13 @@ def delayPlusPropModel(k1, k2):
     V = 0.1
     
     # Controller:  your code here
-    controller = None
+    controller = sf.FeedbackSubtract(sf.Gain(k1), sf.Cascade(sf.Gain(k2), sf.R()))
     # The plant is like the one for the proportional controller.  Use
-    # your definition from last week.
-    plant1 = None
-    plant2 = None
+    # your definition from last week.]
+    plant1 = sf.Cascade(sf.Cascade(sf.Gain(T), sf.R()), sf.FeedbackAdd(sf.Gain(1), sf.R()))
+    plant2 = sf.Cascade(sf.Cascade(sf.Gain(T * V), sf.R()), sf.FeedbackAdd(sf.Gain(1), sf.R()))
     # Combine the three parts
-    sys = None
+    sys = sf.FeedbackSubtract(sf.Cascade(sf.Cascade(controller, plant1), plant2))
     return sys
 
 # You might want to define, and then use this function to find a good
@@ -23,7 +23,9 @@ def delayPlusPropModel(k1, k2):
 # quickly, within the range k2Min, k2Max.  Should call optimize.optOverLine.
 
 def bestk2(k1, k2Min, k2Max, numSteps):
-    pass
+    func = lambda k2: abs(delayPlusPropModel(k1, k2).dominantPole())
+    bestValue, bestK2 = optimize.optOverLine(func, k2Min, k2Max, numSteps)
+    return (bestValue, bestK2)
 
 
 def anglePlusPropModel(k3, k4):
@@ -31,12 +33,11 @@ def anglePlusPropModel(k3, k4):
     V = 0.1
 
     # plant 1 is as before
-    plant1 = None
+    plant1 = sf.Cascade(sf.Cascade(sf.Gain(T), sf.R()), sf.FeedbackAdd(sf.Gain(1), sf.R()))
     # plant2 is as before
-    plant2 = None
+    plant2 = sf.Cascade(sf.Cascade(sf.Gain(T * V), sf.R()), sf.FeedbackAdd(sf.Gain(1), sf.R()))
     # The complete system
-    sys = None
-    
+    sys = sf.FeedbackSubtract(sf.Cascade(sf.Cascade(sf.Gain(k3), sf.FeedbackSubtract(plant1, sf.Gain(k4))), plant2))
     return sys
 
 
@@ -44,4 +45,23 @@ def anglePlusPropModel(k3, k4):
 # quickly, within the range k4Min, k4Max.  Should call optimize.optOverLine.
 
 def bestk4(k3, k4Min, k4Max, numSteps):
-    pass
+    func = lambda k4: max(anglePlusPropModel(k3, k4).poleMagnitudes())
+    bestValue, bestK4 = optimize.optOverLine(func, k4Min, k4Max, numSteps)
+    return (bestValue, bestK4)
+
+if __name__ == '__main__':
+    bestValues_1 = []
+    bestValues_2 = []
+    k2Values = []
+    k4Values = []
+    k1s = [10, 30, 100, 300]
+    k3s = [1, 3, 10, 30]
+    for k1 in k1s:
+        bestValue, k2 = bestk2(k1, -1000, 1000, 20000)
+        bestValues_1.append(bestValue)
+        k2Values.append(k2)
+    for k3 in k3s:
+        bestValue, k4 = bestk4(k3, -100, 100, 2000)
+        bestValues_2.append(bestValue)
+        k4Values.append(k4)
+

@@ -19,25 +19,24 @@ dDesired = 0.7
 # Note that this machine must also compute E, the error, and output
 # the velocity, based on that.
 class Controller(sm.SM):
+    def __init__(self, k):
+        self.k = k
     def getNextValues(self, state, inp):
-
-################
-# Your code here
-################
-
-        pass
+        E = dDesired - (math.sin(math.pi/4)*inp)
+        vel = self.k*E
+        return (state, io.Action(fvel= vel, rvel= 0))
 
 # Input is SensorInput instance; output is a delayed front sonar reading 
 class Sensor(sm.SM):
     def __init__(self, initDist, numDelays):
         self.startState = [initDist]*numDelays
     def getNextValues(self, state, inp):
-        print inp.sonars[3]
+        print inp.sonars[3]*math.sin(math.pi/4)
         output = state[-1]
         state = [inp.sonars[3]] + state[:-1]
         return (state, output)
 
-mySM = sm.Cascade(Sensor(1.5, 1), Controller())
+mySM = sm.Cascade(Sensor(1.5, 1), Controller(3))
 mySM.name = 'brainSM'
 
 ######################################################################

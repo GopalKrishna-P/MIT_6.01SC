@@ -29,7 +29,8 @@ squarePoints = [util.Point(0.5, 0.5), util.Point(0.0, 1.0),
                 util.Point(-0.5, 0.5), util.Point(0.0, 0.0)]
 
 # Put your answer to step 1 here
-mySM = None
+testPoint = [util.Point(2.0, 0.0)]
+mySM = sm.Cascade(sm.Parallel(ffSkeleton.FollowFigure(secret), sm.Wire()), sm.Switch(DMP.stop_P, DMP.stopPedestrians(), DMP.DynamicMoveToPoint()))
 
 ######################################################################
 ###

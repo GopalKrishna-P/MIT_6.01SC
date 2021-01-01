@@ -25,6 +25,15 @@ print 's2.poles():', s2.poles()
 print 's2.poleMagnitudes():', s2.poleMagnitudes()
 print 's2.dominantPole():', s2.dominantPole()
 
+print '----------------------------------------'
+system_1 = sf.SystemFunction(poly.Polynomial([-2,1]), poly.Polynomial([-1,1]))
+system_2 = sf.SystemFunction(poly.Polynomial([1,0,1]), poly.Polynomial([-1,1]))
+print sf.Cascade(system_1, system_2)
+# Checked!
+
+print '----------------------------------------'
+print sf.FeedbackSubtract(system_1, system_2)
+
 T = 0.1
 k = 2.0
 controller = sf.SystemFunction(poly.Polynomial([-k]), poly.Polynomial([1]))

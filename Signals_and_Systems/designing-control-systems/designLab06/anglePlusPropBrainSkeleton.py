@@ -29,6 +29,13 @@ class Sensor(sm.SM):
 class WallFollower(sm.SM):
     startState = None
     def getNextValues(self, state, inp):
+      error = desiredRight - inp[0]
+      k3 = 1.08
+      k4 = 0.9460
+      if inp[1] == None: 
+        output = io.Action(forwardVelocity, rvel = 0)
+      output = io.Action(forwardVelocity, rvel = k3*error - k4*inp[1])
+      return (state, output)
 
 ################
 # Your code here
