@@ -19,13 +19,48 @@ bigPlanWorld = ['bigPlanWorld.py', 0.25, util.Point(3.0, 1.0),
 
 class GridDynamics(sm.SM):
     
-    legalInputs = None
+    legalInputs = ['u','ur','r','dr','d','dl','l','ul']
     
     def __init__(self, theMap):
         pass
-
+    
+    def nextState(self,state,inp):
+        nextState = list(state)
+        if inp == 'u':
+            nextState[1] += 1
+            cost = 1.
+        elif inp == 'ur':
+            nextState[0] += 1
+            nextState[1] += 1
+            cost = 2.**(0.5)
+        elif inp == 'r':
+            nextState[0] += 1
+            cost = 1.
+        elif inp == 'dr':
+            nextState[0] += 1
+            nextState[1] -= 1
+            cost = 2.**(0.5)
+        elif inp == 'd':
+            nextState[1] -= 1
+            cost = 1.
+        elif inp == 'dl':
+            nextState[0] -= 1
+            nextState[1] -= 1
+            cost = 2.**(0.5)
+        elif inp == 'l':
+            nextState[0] -= 1
+            cost = 1.
+        elif inp == 'ul':
+            nextState[0] -= 1
+            nextState[1] -= 1
+            cost = 2.**(0.5)
+        return (tuple(nextState),cost)
     def getNextValues(self, state, inp):
-        pass
+        if inp not in legalInputs:
+            return (state, 0)
+        else:
+            (nextState,cost) = self.nextState(state,inp)
+        return (nextState, cost)
 
 
 

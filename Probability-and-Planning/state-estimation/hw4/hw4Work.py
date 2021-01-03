@@ -72,17 +72,18 @@ def incrDictEntry(d, k, v):
 
 class MixtureDist:
     def __init__(self, d1, d2, p):
-        # your code here
-        pass
-        
+        distDict = {}
+        domain = []
+        for value in d1.support() + d2.support():
+            domain.append(value)
+        domain = list(set(domain))  # removes repeated values
+        for value in domain:
+            distDict[value] = p*d1.prob(value) + (1.-p)*d2.prob(value)
+        self.dist = DDist(distDict)
     def prob(self, elt):
-        # your code here
-        pass
-
+        return self.dist.prob(elt)
     def support(self):
-        # your code here
-        pass
-
+        return self.dist.support()
     def __str__(self):
         result = 'MixtureDist({'
         elts = self.support()
@@ -92,6 +93,60 @@ class MixtureDist:
         return result
     
     __repr__ = __str__
+
+def squareDist(lo, hi, loLimit = None, hiLimit = None):
+    distDict = {}
+    prob = 1./(hi-lo)
+    if loLimit == hiLimit == None:
+        for value in range(lo,hi):
+            distDict[value] = prob
+    else:
+        if lo < loLimit:
+            distDict[loLimit] = 0.
+        if hi > hiLimit:
+            distDict[hiLimit] = 0.
+        for value in range(lo,hi):
+            if hiLimit >= value >= loLimit:
+                if value not in distDict.keys():
+                    distDict[value] = prob
+                else:
+                    distDict[value] += prob
+            elif value < loLimit:
+                distDict[loLimit] += prob
+            elif value > hiLimit:
+                distDict[hiLimit] += prob
+    return DDist(distDict)
+
+def triangleDist(peak, halfWidth, loLimit = None, hiLimit = None):
+    distDict = {}
+    if loLimit == None: loLimit = peak - 10*halfWidth
+    if hiLimit == None:     hiLimit = peak + 10*halfWidth
+    nStates = float(halfWidth**2)
+    if peak - halfWidth + 1 >= loLimit and peak + halfWidth - 1 <= hiLimit:
+        for value in range(halfWidth):
+            distDict[peak+value] = abs(value-halfWidth)/nStates
+            distDict[peak-value] = abs(value-halfWidth)/nStates
+    else:
+        if peak - halfWidth + 1 < loLimit:
+            distDict[loLimit] = 0.
+        if peak + halfWidth - 1 > hiLimit:
+            distDict[hiLimit] = 0.
+        for value in range(halfWidth):
+            if peak+value <= hiLimit:
+                distDict[peak+value] = abs(value-halfWidth)/nStates
+            else:
+                distDict[hiLimit] += abs(value-halfWidth)/nStates
+            if peak-value >= loLimit:
+                distDict[peak-value] = abs(value-halfWidth)/nStates
+            else:
+                distDict[loLimit] += abs(value-halfWidth)/nStates
+        if peak < loLimit:
+            distDict[loLimit] += distDict[peak]
+            del distDict[peak]
+        if peak > hiLimit:
+            distDict[hiLimit] += distDict[peak]
+            del DistDict[peak]
+    return DDist(distDict)
 
 #-----------------------------------------------------------------------------
 # If you want to plot your distributions for debugging, put this file
